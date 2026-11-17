@@ -1,6 +1,6 @@
 # Ryna
 
-Ryna's addons for World of Warcraft: Forever, in one download: the Ryna addon and every mod that
+Ryna's addons for World of Warcraft: Forever, in one download: Ryna Core and every mod that
 builds on it. One window (`/ryna`), one settings panel, one look, in place of several separate addons.
 
 This repository is where releases for addon managers will be published; it has none yet. The source,
@@ -10,14 +10,14 @@ the issues and the desktop app are at [MaddisonM79/ryna_agent](https://github.co
 
 | Folder | What it does | Without the Ryna app |
 |---|---|---|
-| `Ryna` | The window, the settings panel, the minimap button and the plumbing every mod uses. | Works |
+| `Ryna_Core` | Ryna Core: the window, the settings panel, the minimap button and the plumbing every mod uses. | Works |
 | `Ryna_Meter` | A live meter (damage, DPS, healing, HPS, damage taken, absorbs, interrupts, dispels) and a threat bar for your group. | Works fully |
 | `Ryna_Automation` | Does the chores you tick: quests, vendors, trainers, mail, loot rolls, invites, resurrections, dialogs and cinematics. Does nothing until you turn each one on; hold Shift to pause it. | Works fully |
 | `Ryna_Prices` | What a vendor pays for an item and what the auction house asks, on every item tooltip. | Limited: everyone's pooled prices come through the app |
 | `Ryna_Chronicle` | Records your characters, bags, bank, quests, kills and loot, and shows your tallies on tooltips. | Records and shows in game |
 | `Ryna_Fights` | Your recent fights in Ryna's window: who struck first, who died when, damage over the fight. | Shows nothing |
 
-Every mod needs `Ryna`. To leave a mod out, untick it in the game's AddOns list on the
+Every mod needs `Ryna_Core` (the folder was `Ryna` before 0.5.0). To leave a mod out, untick it in the game's AddOns list on the
 character select screen.
 
 ## What the Ryna app adds
