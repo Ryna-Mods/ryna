@@ -1,5 +1,5 @@
-# A bundle release, from a tag `v<N>`: Ryna-v<N>-forever.zip (every addon bundle.json names, side by
-# side) and addons.json, the index the Ryna app reads, numbered N and signed with the addons key
+# A bundle release, from a tag `vX.Y.Z`: Ryna-X.Y.Z-forever.zip (every addon bundle.json names, side
+# by side) and addons.json, the index the Ryna app reads, signed with the addons key
 # (RELEASING.md). Three jobs, so each holds only what it needs:
 #   build    no secret, no write: fetches the pinned addon releases and makes the files.
 #   sign     the `release` environment (v* tags only): signs addons.json and proves the signature
@@ -30,7 +30,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
-      serial: ${{ steps.serial.outputs.serial }}
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -59,7 +59,6 @@ jobs:
           esac
       # The index the app last saw, when there is one: this release must not go back on it.
       - name: The published index
-        id: previous
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -69,41 +68,36 @@ jobs:
           if latest="$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .tag_name 2>latest.err)"; then
             gh release download "$latest" --repo "$GITHUB_REPOSITORY" --pattern addons.json --pattern addons.json.sig --dir previous
             node scripts/publish.mjs verify previous
-            serial="$(jq -er .serial previous/addons.json)"
-            echo "serial=$serial" >> "$GITHUB_OUTPUT"
           elif grep -q "HTTP 404" latest.err; then
             echo "No release yet: this is the first index."
-            echo "serial=0" >> "$GITHUB_OUTPUT"
           else
             cat latest.err; echo "::error::couldn't read the latest release"; exit 1
           fi
-      # The tag is the index's number. A run that isn't from a tag builds the next one.
-      - name: The serial
-        id: serial
-        env:
-          PREVIOUS: ${{ steps.previous.outputs.serial }}
+      # The tag is the bundle's version, and the version is the index's serial (0.5.1 is 5001).
+      # A run that isn't from a tag builds the next patch.
+      - name: The version
+        id: version
         run: |
           set -euo pipefail
           if [ "$GITHUB_REF_TYPE" = tag ]; then
-            case "$GITHUB_REF_NAME" in
-              v[1-9]|v[1-9][0-9]|v[1-9][0-9][0-9]|v[1-9][0-9][0-9][0-9]|v[1-9][0-9][0-9][0-9][0-9]) serial="${GITHUB_REF_NAME#v}" ;;
-              *) echo "::error::a bundle's tag is v<N>, a whole number (this one is $GITHUB_REF_NAME)"; exit 1 ;;
-            esac
+            version="${GITHUB_REF_NAME#v}"
+          elif [ -f previous/addons.json ]; then
+            version="$(node scripts/publish.mjs next --previous previous/addons.json)"
           else
-            serial="$((PREVIOUS + 1))"
+            version="$(node scripts/publish.mjs next)"
           fi
-          echo "serial=$serial" >> "$GITHUB_OUTPUT"
-          echo "index $serial (the published one is $PREVIOUS)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "bundle $version"
       - name: Build the bundle and the index
         env:
-          SERIAL: ${{ steps.serial.outputs.serial }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
           set -euo pipefail
           previous=()
           if [ -f previous/addons.json ]; then previous=(--previous previous/addons.json); fi
-          node scripts/publish.mjs build --serial "$SERIAL" --out dist --notes notes.md "${previous[@]}"
+          node scripts/publish.mjs build --version "$VERSION" --out dist --notes notes.md "${previous[@]}"
           cat dist/addons.json
-          unzip -tq "dist/Ryna-v${SERIAL}-forever.zip"
+          unzip -tq "dist/Ryna-${VERSION}-forever.zip"
           cp notes.md dist/NOTES.md
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -166,7 +160,7 @@ jobs:
     permissions:
       contents: write
     env:
-      SERIAL: ${{ needs.build.outputs.serial }}
+      VERSION: ${{ needs.build.outputs.version }}
     steps:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -178,9 +172,9 @@ jobs:
         run: |
           set -euo pipefail
           mv dist/NOTES.md notes.md
-          # A published release is never changed, not even its files: a fix is the next number.
+          # A published release is never changed, not even its files: a fix is the next version.
           if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "::error::$GITHUB_REF_NAME already has a release, and a published release is never changed. Tag the next number."
+            echo "::error::$GITHUB_REF_NAME already has a release, and a published release is never changed. Tag the next version."
             exit 1
           fi
-          gh release create "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY" --verify-tag --title "Ryna bundle $SERIAL" --notes-file notes.md
+          gh release create "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY" --verify-tag --title "Ryna $VERSION" --notes-file notes.md

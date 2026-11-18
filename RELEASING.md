@@ -2,14 +2,16 @@
 
 A release of this repository is two things made together:
 
-- **`Ryna-v<N>-forever.zip`**: every addon's folder side by side, for an addon manager.
+- **`Ryna-<version>-forever.zip`**: every addon's folder side by side, for an addon manager.
 - **`addons.json`** and **`addons.json.sig`**: the index the Ryna app reads at
   `releases/latest/download/addons.json`, to update each addon on its own between app releases
   (the design is section 6.2 of
   [ryna_agent's design note](https://github.com/MaddisonM79/ryna_agent/blob/main/docs/ryna-agent-cores-mods.md)).
 
-`N` is a whole number that goes up by one each release. It is the tag (`v7`) and the index's
-`serial`; the app refuses an index numbered lower than the last one it took.
+The bundle has a version of its own, on the 0.5 line (`0.5.0`, `0.5.1`, …), one patch up each
+release. It is the tag (`v0.5.1`), and it gives the index its `serial` (0.5.1 is 5001): the app
+refuses an index numbered lower than the last one it took, so a bundle's version only ever goes up.
+It says nothing about the versions of the addons inside, which each have their own.
 
 ## What a release holds
 
@@ -37,20 +39,20 @@ holding anything but its one folder, an addon that would go back a version or dr
 1. Edit `bundle.json`: the addon's new `tag` (and `minApp` if it needs one).
 2. `node scripts/publish.mjs pin` fills in the `sha256`. Read the diff: one addon changed.
 3. `node --test scripts/publish.test.mjs`, then commit (signed) and push to `main`.
-4. Tag the next number, signed and annotated, on that commit, and push the tag:
+4. Tag the next version, signed and annotated, on that commit, and push the tag:
 
    ```bash
-   git tag -s v7 -m "v7"
+   git tag -s v0.5.1 -m "v0.5.1"
    ```
 
    ```bash
-   git push origin v7
+   git push origin v0.5.1
    ```
 
 The `release` workflow does the rest: it builds, signs the index with the addons key (which lives
 only in the `release` environment, open to `v*` tags alone), checks the signature against
 [`addons.pub`](addons.pub), the key the app carries, and publishes. A published release is never
-changed; a mistake is fixed by the next number.
+changed; a mistake is fixed by the next version.
 
 To see what a release would hold without publishing, run the workflow by hand from `main`: the
 files are kept as a workflow artifact, unsigned.

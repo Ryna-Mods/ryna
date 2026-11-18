@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 // The publisher: from bundle.json (which release of each addon the next bundle holds) it makes
-//   - Ryna-v<serial>-forever.zip, every addon's folder side by side, for an addon manager, and
+//   - Ryna-<version>-forever.zip, every addon's folder side by side, for an addon manager, and
 //   - addons.json, the index the Ryna app reads to update each addon on its own
 //     (MaddisonM79/ryna_agent docs/ryna-agent-cores-mods.md 6.2).
 // The release workflow signs addons.json and publishes both; this file never sees a key.
 //
 //   node scripts/publish.mjs pin                      fill in each addon's sha256 in bundle.json
-//   node scripts/publish.mjs build --serial N --out dist [--previous addons.json]
+//   node scripts/publish.mjs build --version X.Y.Z --out dist [--previous addons.json]
 //   node scripts/publish.mjs verify <dir>             <dir>/addons.json against its .sig and addons.pub
 //                                    [--pub <file>]   (another key: tests only)
 import { createHash } from "node:crypto";
@@ -42,6 +42,23 @@ export function compareVersions(a, b) {
     if (d) return Math.sign(d);
   }
   return 0;
+}
+
+/**
+ * The index's serial for a bundle version: 0.5.1 is 5001. The app refuses an index whose serial is
+ * below the last it took, so the number has to rise with the version; three parts, each under 1000.
+ */
+export function serialOf(version) {
+  const part = "(0|[1-9]\\d{0,2})";
+  const m = new RegExp(`^${part}\\.${part}\\.${part}$`).exec(String(version));
+  const serial = m ? Number(m[1]) * 1_000_000 + Number(m[2]) * 1_000 + Number(m[3]) : 0;
+  if (!m || serial < 1) throw new Error(`a bundle's version is X.Y.Z, each part under 1000 (not ${version})`);
+  return serial;
+}
+
+/** The bundle version a serial stands for. */
+export function versionOf(serial) {
+  return `${Math.floor(serial / 1_000_000)}.${Math.floor(serial / 1_000) % 1_000}.${serial % 1_000}`;
 }
 
 /** Check bundle.json's shape and return its addons, each with `version`, `asset` and `url` worked out. */
@@ -131,12 +148,12 @@ export function takeFolder(entries, folder, { alone }) {
 }
 
 /**
- * Build a release. `fetch(url)` resolves to the asset's bytes; `previous` is the last published
+ * Build release `version`. `fetch(url)` resolves to the asset's bytes; `previous` is the last published
  * index (already checked), when there is one. Returns `{ index, files, notes }`: `files` maps a
  * name to its bytes (the index and the bundle zip), `notes` is the release's text.
  */
-export async function build({ bundle, serial, fetch, generated, previous }) {
-  if (!Number.isSafeInteger(serial) || serial < 1) throw new Error("the serial is a whole number from 1");
+export async function build({ bundle, version, fetch, generated, previous }) {
+  const serial = serialOf(version);
   const addons = readBundle(bundle);
 
   const assets = new Map();
@@ -202,7 +219,7 @@ export async function build({ bundle, serial, fetch, generated, previous }) {
 
   if (previous) {
     if (!(serial > previous.serial)) {
-      throw new Error(`serial ${serial} isn't above the published index's (${previous.serial})`);
+      throw new Error(`${version} isn't above the published bundle (${versionOf(previous.serial)})`);
     }
     for (const was of previous.addons ?? []) {
       const now = entries.find((e) => e.folder === was.folder);
@@ -226,8 +243,8 @@ export async function build({ bundle, serial, fetch, generated, previous }) {
     ...taken.map((t) => `| \`${t.folder}\` | ${t.version} | [${t.repo} ${t.tag}](https://github.com/${t.repo}/releases/tag/${t.tag}) |`),
     "",
     entries.length
-      ? `The Ryna app updates ${entries.map((e) => `\`${e.folder}\``).join(", ")} from this release's \`addons.json\` (index ${serial}).`
-      : `\`addons.json\` (index ${serial}) lists nothing yet: the app carries these versions itself.`,
+      ? `The Ryna app updates ${entries.map((e) => `\`${e.folder}\``).join(", ")} from this release's \`addons.json\`.`
+      : `\`addons.json\` lists nothing yet: the app carries these versions itself.`,
     "",
   ].join("\n");
   return {
@@ -235,7 +252,7 @@ export async function build({ bundle, serial, fetch, generated, previous }) {
     notes,
     files: {
       [INDEX_FILE]: Buffer.from(`${JSON.stringify(index, null, 2)}\n`),
-      [`Ryna-v${serial}-forever.zip`]: writeZip(zipped),
+      [`Ryna-${version}-forever.zip`]: writeZip(zipped),
     },
   };
 }
@@ -268,14 +285,14 @@ async function main(argv) {
     writeFileSync(bundlePath, `${JSON.stringify(json, null, 2)}\n`);
     console.log(`pinned ${addons.length} addons from ${hashes.size} file(s); read the diff before committing it`);
   } else if (command === "build") {
-    const serial = Number(flag("serial"));
+    const version = flag("version");
     const out = flag("out");
     if (!out) throw new Error("build needs --out <dir>");
     const before = flag("previous");
     const epoch = process.env.SOURCE_DATE_EPOCH;
     const built = await build({
       bundle: JSON.parse(readFileSync(bundlePath, "utf8")),
-      serial,
+      version,
       fetch: download,
       generated: new Date(epoch ? Number(epoch) * 1000 : Date.now()).toISOString().replace(/\.\d+Z$/, "Z"),
       previous: before ? JSON.parse(readFileSync(before, "utf8")) : undefined,
@@ -287,7 +304,11 @@ async function main(argv) {
     }
     const notes = flag("notes");
     if (notes) writeFileSync(notes, built.notes);
-    console.log(`index ${serial}: ${built.index.addons.map((e) => `${e.folder} ${e.version}`).join(", ") || "no entries"}`);
+    console.log(`bundle ${version}, index ${built.index.serial}: ${built.index.addons.map((e) => `${e.folder} ${e.version}`).join(", ") || "no entries"}`);
+  } else if (command === "next") {
+    // The version a dry run builds: one patch above the published bundle, or the first.
+    const before = flag("previous");
+    console.log(before ? versionOf(JSON.parse(readFileSync(before, "utf8")).serial + 1) : "0.5.0");
   } else if (command === "verify") {
     const dir = rest[0];
     if (!dir) throw new Error("verify needs a folder");
@@ -296,9 +317,9 @@ async function main(argv) {
     const comment = verifyFile(data, readFileSync(join(dir, `${INDEX_FILE}.sig`), "utf8"), pub, INDEX_FILE);
     const index = JSON.parse(data);
     if (index.schema !== SCHEMA) throw new Error(`it is schema ${index.schema}`);
-    console.log(`${INDEX_FILE}: signed by key ${publicKey(pub).id} (${comment.replace("\t", ", ")}); index ${index.serial}`);
+    console.log(`${INDEX_FILE}: signed by key ${publicKey(pub).id} (${comment.replace("\t", ", ")}); bundle ${versionOf(index.serial)}, index ${index.serial}`);
   } else {
-    throw new Error("usage: publish.mjs pin | build --serial N --out <dir> [--previous <file>] [--notes <file>] | verify <dir>");
+    throw new Error("usage: publish.mjs pin | next [--previous <file>] | build --version X.Y.Z --out <dir> [--previous <file>] [--notes <file>] | verify <dir>");
   }
 }
 

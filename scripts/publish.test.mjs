@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash, generateKeyPairSync, sign as edSign } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { build, compareVersions, readBundle, takeFolder, tocField } from "./publish.mjs";
+import { build, compareVersions, readBundle, serialOf, takeFolder, tocField, versionOf } from "./publish.mjs";
 import { publicKey, verifyFile } from "./sig.mjs";
 import { readZip, writeZip } from "./zip.mjs";
 
@@ -133,6 +133,15 @@ test("bundle.json is refused for anything it shouldn't say", () => {
   assert.throws(() => readBundle({ addons: [] }), /no addons/);
 });
 
+test("a bundle's version gives the index its serial, and back", () => {
+  assert.equal(serialOf("0.5.0"), 5000);
+  assert.equal(serialOf("0.5.12"), 5012);
+  assert.equal(serialOf("1.0.0"), 1000000);
+  assert.ok(serialOf("0.6.0") > serialOf("0.5.999"));
+  assert.equal(versionOf(5012), "0.5.12");
+  assert.equal(versionOf(serialOf("12.34.56")), "12.34.56");
+});
+
 test("versions compare by number, and a TOC field is read whatever its line ending", () => {
   assert.equal(compareVersions("1.10.0", "1.9.9"), 1);
   assert.equal(compareVersions("1.0", "1.0.0"), 0);
@@ -143,10 +152,10 @@ test("versions compare by number, and a TOC field is read whatever its line endi
 
 test("addons that still come from ryna_agent's zip fill the bundle and get no index entry", async () => {
   const w = world();
-  const built = await build({ bundle: { addons: combined(w) }, serial: 1, fetch: w.fetch, generated });
-  assert.deepEqual(built.index, { schema: 1, serial: 1, generated, addons: [] });
+  const built = await build({ bundle: { addons: combined(w) }, version: "0.5.0", fetch: w.fetch, generated });
+  assert.deepEqual(built.index, { schema: 1, serial: 5000, generated, addons: [] });
   assert.deepEqual(JSON.parse(built.files["addons.json"]), built.index);
-  const names = readZip(built.files["Ryna-v1-forever.zip"]).map((e) => e.name);
+  const names = readZip(built.files["Ryna-0.5.0-forever.zip"]).map((e) => e.name);
   assert.deepEqual(names, [...names].sort(), "sorted");
   for (const f of ["Ryna_Core", "Ryna_Meter", "Ryna_Prices"]) assert.ok(names.includes(`${f}/${f}.toc`), f);
   assert.match(built.notes, /lists nothing yet/);
@@ -156,7 +165,7 @@ test("an addon with a release of its own gets an entry that names that release's
   const w = world();
   const [core, , prices] = combined(w);
   const meter = { ...w.put("Ryna_Meter", "Ryna-Mods/meter", "v1.0.1", addon("Ryna_Meter", "1.0.1", 2)), minApp: "0.5.1" };
-  const built = await build({ bundle: { addons: [core, meter, prices] }, serial: 2, fetch: w.fetch, generated });
+  const built = await build({ bundle: { addons: [core, meter, prices] }, version: "0.5.1", fetch: w.fetch, generated });
   const zip = await w.fetch("https://github.com/Ryna-Mods/meter/releases/download/v1.0.1/Ryna_Meter-1.0.1.zip");
   assert.deepEqual(built.index.addons, [
     {
@@ -169,7 +178,7 @@ test("an addon with a release of its own gets an entry that names that release's
       size: zip.length,
     },
   ]);
-  const toc = readZip(built.files["Ryna-v2-forever.zip"]).find((e) => e.name === "Ryna_Meter/Ryna_Meter.toc");
+  const toc = readZip(built.files["Ryna-0.5.1-forever.zip"]).find((e) => e.name === "Ryna_Meter/Ryna_Meter.toc");
   assert.equal(tocField(toc.data.toString(), "Version"), "1.0.1", "the bundle holds the new Meter");
 });
 
@@ -177,18 +186,18 @@ test("the core's own release carries its lowest level into its entry", async () 
   const w = world();
   const [, meter] = combined(w);
   const core = w.put("Ryna_Core", "Ryna-Mods/core", "v1.0.0", addon("Ryna_Core", "1.0.0", 3, { apiMin: 2 }));
-  const built = await build({ bundle: { addons: [core, meter] }, serial: 3, fetch: w.fetch, generated });
+  const built = await build({ bundle: { addons: [core, meter] }, version: "0.5.2", fetch: w.fetch, generated });
   assert.equal(built.index.addons[0].apiMin, 2);
   assert.equal(built.index.addons[0].api, 3);
 
   const bare = w.put("Ryna_Core", "Ryna-Mods/core", "v1.0.1", addon("Ryna_Core", "1.0.1", 3));
-  await assert.rejects(build({ bundle: { addons: [bare, meter] }, serial: 3, fetch: w.fetch, generated }), /no X-Ryna-API-Min/);
+  await assert.rejects(build({ bundle: { addons: [bare, meter] }, version: "0.5.2", fetch: w.fetch, generated }), /no X-Ryna-API-Min/);
 });
 
 test("a release that couldn't work, or isn't what was pinned, is refused", async () => {
   const w = world();
   const [core, meter] = combined(w);
-  const run = (addons, more = {}) => build({ bundle: { addons }, serial: 5, fetch: w.fetch, generated, ...more });
+  const run = (addons, more = {}) => build({ bundle: { addons }, version: "0.5.5", fetch: w.fetch, generated, ...more });
 
   await assert.rejects(run([core, { ...meter, sha256: "0".repeat(64) }]), /isn't the file bundle.json pins/);
   await assert.rejects(run([core, { ...meter, sha256: undefined }]), /pins no sha256/);
@@ -210,7 +219,7 @@ test("a release that couldn't work, or isn't what was pinned, is refused", async
     /a name an addon can't have/,
   );
   await assert.rejects(run([core, put("v1.0.6", [{ name: "Ryna_Meter/Main.lua", data: Buffer.from("x") }])]), /no Ryna_Meter\/Ryna_Meter.toc/);
-  await assert.rejects(run([core, meter], { serial: 0 }), /serial/);
+  for (const version of ["0.0.0", "1", "v0.5.1", "0.5.1000", "0.5"]) await assert.rejects(run([core, meter], { version }), /X\.Y\.Z/);
 });
 
 test("a link in a zip is refused", () => {
@@ -222,12 +231,13 @@ test("an index never goes back on the one published before it", async () => {
   const w = world();
   const [core, old] = combined(w);
   const meter = w.put("Ryna_Meter", "Ryna-Mods/meter", "v1.0.1", addon("Ryna_Meter", "1.0.1", 2));
-  const previous = { schema: 1, serial: 4, addons: [{ folder: "Ryna_Meter", version: "1.0.1" }] };
-  const run = (addons, serial) => build({ bundle: { addons }, serial, fetch: w.fetch, generated, previous });
+  const previous = { schema: 1, serial: 5004, addons: [{ folder: "Ryna_Meter", version: "1.0.1" }] };
+  const run = (addons, version) => build({ bundle: { addons }, version, fetch: w.fetch, generated, previous });
 
-  assert.equal((await run([core, meter], 5)).index.serial, 5);
-  await assert.rejects(run([core, meter], 4), /isn't above/);
-  await assert.rejects(run([core, old], 5), /in the published index and not in this one/);
+  assert.equal((await run([core, meter], "0.5.5")).index.serial, 5005);
+  assert.equal((await run([core, meter], "0.6.0")).index.serial, 6000);
+  await assert.rejects(run([core, meter], "0.5.4"), /isn't above the published bundle \(0\.5\.4\)/);
+  await assert.rejects(run([core, old], "0.5.5"), /in the published index and not in this one/);
   const older = w.put("Ryna_Meter", "Ryna-Mods/meter", "v1.0.0", addon("Ryna_Meter", "1.0.0", 2));
-  await assert.rejects(run([core, older], 5), /go back from 1.0.1 to 1.0.0/);
+  await assert.rejects(run([core, older], "0.5.5"), /go back from 1.0.1 to 1.0.0/);
 });
