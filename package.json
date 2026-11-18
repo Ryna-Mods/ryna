@@ -1,0 +1,13 @@
+{
+  "name": "ryna-bundle",
+  "private": true,
+  "type": "module",
+  "description": "Publishes the Ryna addon bundle and the signed index the Ryna app reads.",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test scripts/"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.12.4"
+  }
+}

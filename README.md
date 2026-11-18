@@ -48,6 +48,12 @@ one of two ways:
   [ryna_agent's latest release](https://github.com/MaddisonM79/ryna_agent/releases/latest) and unzip
   it into `Interface/AddOns`. The `SHA256SUMS` file on the release lets you check the download.
 
+## How a release is made
+
+[`bundle.json`](bundle.json) names the release of each addon that goes into the next bundle, and a
+tag builds it: the zip for addon managers, and a signed index the Ryna app reads to update each
+addon on its own. [RELEASING.md](RELEASING.md) has the steps.
+
 ## Licence
 
 MIT. Bugs and requests go to [ryna_agent's issues](https://github.com/MaddisonM79/ryna_agent/issues).

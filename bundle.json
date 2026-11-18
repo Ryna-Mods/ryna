@@ -1,0 +1,46 @@
+{
+  "addons": [
+    {
+      "folder": "Ryna_Core",
+      "repo": "MaddisonM79/ryna_agent",
+      "tag": "v0.5.0",
+      "asset": "Ryna-0.5.0.zip",
+      "sha256": "2bb3fa08a5686fd1a881b178017e71f30af45b68a7633a12e235ee44cbd68dec"
+    },
+    {
+      "folder": "Ryna_Meter",
+      "repo": "MaddisonM79/ryna_agent",
+      "tag": "v0.5.0",
+      "asset": "Ryna-0.5.0.zip",
+      "sha256": "2bb3fa08a5686fd1a881b178017e71f30af45b68a7633a12e235ee44cbd68dec"
+    },
+    {
+      "folder": "Ryna_Automation",
+      "repo": "MaddisonM79/ryna_agent",
+      "tag": "v0.5.0",
+      "asset": "Ryna-0.5.0.zip",
+      "sha256": "2bb3fa08a5686fd1a881b178017e71f30af45b68a7633a12e235ee44cbd68dec"
+    },
+    {
+      "folder": "Ryna_Prices",
+      "repo": "MaddisonM79/ryna_agent",
+      "tag": "v0.5.0",
+      "asset": "Ryna-0.5.0.zip",
+      "sha256": "2bb3fa08a5686fd1a881b178017e71f30af45b68a7633a12e235ee44cbd68dec"
+    },
+    {
+      "folder": "Ryna_Chronicle",
+      "repo": "MaddisonM79/ryna_agent",
+      "tag": "v0.5.0",
+      "asset": "Ryna-0.5.0.zip",
+      "sha256": "2bb3fa08a5686fd1a881b178017e71f30af45b68a7633a12e235ee44cbd68dec"
+    },
+    {
+      "folder": "Ryna_Fights",
+      "repo": "MaddisonM79/ryna_agent",
+      "tag": "v0.5.0",
+      "asset": "Ryna-0.5.0.zip",
+      "sha256": "2bb3fa08a5686fd1a881b178017e71f30af45b68a7633a12e235ee44cbd68dec"
+    }
+  ]
+}
