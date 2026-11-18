@@ -3,8 +3,8 @@
 Ryna's addons for World of Warcraft: Forever, in one download: Ryna Core and every mod that
 builds on it. One window (`/ryna`), one settings panel, one look, in place of several separate addons.
 
-This repository is where releases for addon managers will be published; it has none yet. The source,
-the issues and the desktop app are at [MaddisonM79/ryna_agent](https://github.com/MaddisonM79/ryna_agent).
+This repository publishes that download ([latest release](https://github.com/Ryna-Mods/ryna/releases/latest)).
+The source, the issues and the desktop app are at [MaddisonM79/ryna_agent](https://github.com/MaddisonM79/ryna_agent).
 
 ## What's in it
 
@@ -40,13 +40,15 @@ on your disk. Data goes anywhere only if you install the app and sign in, and
 
 ## Installing
 
-There is no release here yet, and Ryna isn't listed in an addon manager yet. Today the addons come
-one of two ways:
+Ryna isn't listed in an addon manager yet. Today the addons come one of two ways:
 
 - **With the Ryna app**, which installs them and keeps them up to date.
-- **By hand:** take `Ryna-<version>.zip` from
-  [ryna_agent's latest release](https://github.com/MaddisonM79/ryna_agent/releases/latest) and unzip
-  it into `Interface/AddOns`. The `SHA256SUMS` file on the release lets you check the download.
+- **By hand:** take `Ryna-<version>-forever.zip` from the
+  [latest release](https://github.com/Ryna-Mods/ryna/releases/latest) and unzip it into
+  `Interface/AddOns`. The `SHA256SUMS` file on the release lets you check the download.
+
+The release's version is the bundle's own; the notes on each release list the version of every
+addon inside.
 
 ## How a release is made
 
