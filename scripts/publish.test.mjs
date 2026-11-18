@@ -134,7 +134,9 @@ test("bundle.json is refused for anything it shouldn't say", () => {
 });
 
 test("a bundle's version gives the index its serial, and back", () => {
-  assert.equal(serialOf("0.5.0"), 5000);
+  assert.equal(serialOf("0.5.1"), 5001);
+  assert.throws(() => serialOf("0.5.0"), /already released/);
+  assert.throws(() => serialOf("0.4.9"), /starts at 0.5.1/);
   assert.equal(serialOf("0.5.12"), 5012);
   assert.equal(serialOf("1.0.0"), 1000000);
   assert.ok(serialOf("0.6.0") > serialOf("0.5.999"));
@@ -152,10 +154,10 @@ test("versions compare by number, and a TOC field is read whatever its line endi
 
 test("addons that still come from ryna_agent's zip fill the bundle and get no index entry", async () => {
   const w = world();
-  const built = await build({ bundle: { addons: combined(w) }, version: "0.5.0", fetch: w.fetch, generated });
-  assert.deepEqual(built.index, { schema: 1, serial: 5000, generated, addons: [] });
+  const built = await build({ bundle: { addons: combined(w) }, version: "0.5.1", fetch: w.fetch, generated });
+  assert.deepEqual(built.index, { schema: 1, serial: 5001, generated, addons: [] });
   assert.deepEqual(JSON.parse(built.files["addons.json"]), built.index);
-  const names = readZip(built.files["Ryna-0.5.0-forever.zip"]).map((e) => e.name);
+  const names = readZip(built.files["Ryna-0.5.1-forever.zip"]).map((e) => e.name);
   assert.deepEqual(names, [...names].sort(), "sorted");
   for (const f of ["Ryna_Core", "Ryna_Meter", "Ryna_Prices"]) assert.ok(names.includes(`${f}/${f}.toc`), f);
   assert.match(built.notes, /lists nothing yet/);
@@ -219,7 +221,7 @@ test("a release that couldn't work, or isn't what was pinned, is refused", async
     /a name an addon can't have/,
   );
   await assert.rejects(run([core, put("v1.0.6", [{ name: "Ryna_Meter/Main.lua", data: Buffer.from("x") }])]), /no Ryna_Meter\/Ryna_Meter.toc/);
-  for (const version of ["0.0.0", "1", "v0.5.1", "0.5.1000", "0.5"]) await assert.rejects(run([core, meter], { version }), /X\.Y\.Z/);
+  for (const version of ["1", "v0.5.1", "0.5.1000", "0.5"]) await assert.rejects(run([core, meter], { version }), /X\.Y\.Z/);
 });
 
 test("a link in a zip is refused", () => {

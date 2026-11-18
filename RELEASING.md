@@ -8,8 +8,8 @@ A release of this repository is two things made together:
   (the design is section 6.2 of
   [ryna_agent's design note](https://github.com/MaddisonM79/ryna_agent/blob/main/docs/ryna-agent-cores-mods.md)).
 
-The bundle has a version of its own, on the 0.5 line (`0.5.0`, `0.5.1`, …), one patch up each
-release. It is the tag (`v0.5.1`), and it gives the index its `serial` (0.5.1 is 5001): the app
+The bundle has a version of its own, on the 0.5 line, one patch up each
+release, starting at `0.5.1` (0.5.0 was the last release every addon shared, from ryna_agent). It is the tag (`v0.5.1`), and it gives the index its `serial` (0.5.1 is 5001): the app
 refuses an index numbered lower than the last one it took, so a bundle's version only ever goes up.
 It says nothing about the versions of the addons inside, which each have their own.
 
@@ -42,11 +42,11 @@ holding anything but its one folder, an addon that would go back a version or dr
 4. Tag the next version, signed and annotated, on that commit, and push the tag:
 
    ```bash
-   git tag -s v0.5.1 -m "v0.5.1"
+   git tag -s v0.5.2 -m "v0.5.2"
    ```
 
    ```bash
-   git push origin v0.5.1
+   git push origin v0.5.2
    ```
 
 The `release` workflow does the rest: it builds, signs the index with the addons key (which lives

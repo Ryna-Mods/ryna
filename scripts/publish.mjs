@@ -48,11 +48,15 @@ export function compareVersions(a, b) {
  * The index's serial for a bundle version: 0.5.1 is 5001. The app refuses an index whose serial is
  * below the last it took, so the number has to rise with the version; three parts, each under 1000.
  */
+const FIRST_SERIAL = 5001;
+
 export function serialOf(version) {
   const part = "(0|[1-9]\\d{0,2})";
   const m = new RegExp(`^${part}\\.${part}\\.${part}$`).exec(String(version));
   const serial = m ? Number(m[1]) * 1_000_000 + Number(m[2]) * 1_000 + Number(m[3]) : 0;
-  if (!m || serial < 1) throw new Error(`a bundle's version is X.Y.Z, each part under 1000 (not ${version})`);
+  if (!m) throw new Error(`a bundle's version is X.Y.Z, each part under 1000 (not ${version})`);
+  // 0.5.0 was the last release every addon shared (ryna_agent's); the bundle's own line starts after it.
+  if (serial < FIRST_SERIAL) throw new Error(`a bundle's version starts at 0.5.1 (not ${version}): 0.5.0 is already released`);
   return serial;
 }
 
@@ -308,7 +312,7 @@ async function main(argv) {
   } else if (command === "next") {
     // The version a dry run builds: one patch above the published bundle, or the first.
     const before = flag("previous");
-    console.log(before ? versionOf(JSON.parse(readFileSync(before, "utf8")).serial + 1) : "0.5.0");
+    console.log(before ? versionOf(JSON.parse(readFileSync(before, "utf8")).serial + 1) : versionOf(FIRST_SERIAL));
   } else if (command === "verify") {
     const dir = rest[0];
     if (!dir) throw new Error("verify needs a folder");
