@@ -18,7 +18,7 @@ It says nothing about the versions of the addons inside, which each have their o
 [`bundle.json`](bundle.json) says which release of each addon goes in:
 
 ```json
-{ "folder": "Ryna_Meter", "repo": "Ryna-Mods/meter", "tag": "v1.0.1", "sha256": "…", "minApp": "0.5.1" }
+{ "folder": "Ryna_Meter", "repo": "Ryna-Mods/meter", "tag": "v0.5.1", "sha256": "…", "minApp": "0.5.1" }
 ```
 
 - `repo` and `tag` name the addon's release. Its zip is `<Folder>-<version>.zip` unless `asset` says

@@ -9,10 +9,9 @@
     },
     {
       "folder": "Ryna_Meter",
-      "repo": "MaddisonM79/ryna_agent",
-      "tag": "v0.5.0",
-      "asset": "Ryna-0.5.0.zip",
-      "sha256": "2bb3fa08a5686fd1a881b178017e71f30af45b68a7633a12e235ee44cbd68dec"
+      "repo": "Ryna-Mods/meter",
+      "tag": "v0.5.1",
+      "sha256": "f1a53ded1448d2cd68369479d78b5a12b92d63d625538437a5bce8732029d9bc"
     },
     {
       "folder": "Ryna_Automation",
