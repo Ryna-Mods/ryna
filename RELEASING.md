@@ -36,7 +36,7 @@ holding anything but its one folder, an addon that would go back a version or dr
 
 1. Edit `bundle.json`: the addon's new `tag` (and `minApp` if it needs one).
 2. `node scripts/publish.mjs pin` fills in the `sha256`. Read the diff: one addon changed.
-3. `node --test scripts/`, then commit (signed) and push to `main`.
+3. `node --test scripts/publish.test.mjs`, then commit (signed) and push to `main`.
 4. Tag the next number, signed and annotated, on that commit, and push the tag:
 
    ```bash
