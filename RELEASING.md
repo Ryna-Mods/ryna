@@ -26,9 +26,9 @@ It says nothing about the versions of the addons inside, which each have their o
 - `sha256` pins that zip. The build stops if the file on GitHub is any other.
 - `minApp` (optional) is the oldest Ryna app that can read what this version writes; an older app
   keeps the copy it carries.
-- An addon in a repository of its own (`Ryna-Mods/…`) gets an index entry, so the app can fetch it.
-  One that still comes out of ryna_agent's combined zip (`MaddisonM79/ryna_agent`, `asset`
-  `Ryna-<version>.zip`) is only in the bundle: the app already carries that version.
+- Every addon is in a repository of its own (`Ryna-Mods/…`) and gets an index entry, so the app can
+  fetch it. (The build still takes an addon out of ryna_agent's combined zip, `MaddisonM79/ryna_agent`
+  with `asset` `Ryna-<version>.zip`, and leaves it out of the index; none comes that way any more.)
 
 The build ([`scripts/publish.mjs`](scripts/publish.mjs)) refuses a release that couldn't work: a TOC
 whose version isn't its tag's, a mod that needs an API level the bundle's core doesn't serve, a zip

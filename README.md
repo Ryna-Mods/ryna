@@ -4,7 +4,11 @@ Ryna's addons for World of Warcraft: Forever, in one download: Ryna Core and eve
 builds on it. One window (`/ryna`), one settings panel, one look, in place of several separate addons.
 
 This repository publishes that download ([latest release](https://github.com/Ryna-Mods/ryna/releases/latest)).
-The source, the issues and the desktop app are at [MaddisonM79/ryna_agent](https://github.com/MaddisonM79/ryna_agent).
+Each addon's source is in a repository of its own, beside this one:
+[core](https://github.com/Ryna-Mods/core), [meter](https://github.com/Ryna-Mods/meter),
+[automation](https://github.com/Ryna-Mods/automation), [prices](https://github.com/Ryna-Mods/prices),
+[chronicle](https://github.com/Ryna-Mods/chronicle) and [fights](https://github.com/Ryna-Mods/fights).
+The desktop app and the issues are at [MaddisonM79/ryna_agent](https://github.com/MaddisonM79/ryna_agent).
 
 ## What's in it
 
