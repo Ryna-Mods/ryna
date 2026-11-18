@@ -35,6 +35,12 @@
       "repo": "Ryna-Mods/fights",
       "tag": "v0.5.1",
       "sha256": "2d3a1f17daa70d26009c263e5cbf803b0279c25f47f9cccb31e5d27010980bdc"
+    },
+    {
+      "folder": "Ryna_Cleanse",
+      "repo": "Ryna-Mods/cleanse",
+      "tag": "v0.1.0",
+      "sha256": "71555a22f65b2c401845fbf476e16eb64c6b7ff34d9f99736801a2f8ae2c2749"
     }
   ]
 }
