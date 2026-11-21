@@ -34,11 +34,30 @@ The build ([`scripts/publish.mjs`](scripts/publish.mjs)) refuses a release that 
 whose version isn't its tag's, a mod that needs an API level the bundle's core doesn't serve, a zip
 holding anything but its one folder, an addon that would go back a version or drop out of the index.
 
+## One addon, in one command
+
+An addon change reaches a player only after two releases, the addon's own and then this
+repository's. [`scripts/release-addon.mjs`](scripts/release-addon.mjs) runs both, and moves the
+app's pin in ryna_agent, stopping at the first thing that isn't right:
+
+```bash
+node scripts/release-addon.mjs chronicle 0.7.2 "what changed, in a few words" --dry-run
+```
+
+Without `--dry-run` it sets the addon's TOC version, runs the addon's checks, commits, tags and waits
+for its release; then sets this repository's `bundle.json`, pins it (refusing a diff of more than that
+one addon), runs the tests, commits, tags the next bundle version and reads the published index back;
+then moves the mod's pin in ryna_agent and runs its checks. It needs the addon's clone beside this
+one, ryna_agent at `../../MaddisonM79/ryna_agent` (or `$RYNA_MODS_DIR`, `$RYNA_AGENT_DIR`), every
+clone on a clean, pushed `main`, and the addon's check green on that commit. Both tags are signed with
+the key git already uses, so nothing about who may publish changes. For Ryna Core it leaves the
+app's pin to a person, since that pin moves with the API levels.
+
 ## Steps
 
 1. Edit `bundle.json`: the addon's new `tag` (and `minApp` if it needs one).
 2. `node scripts/publish.mjs pin` fills in the `sha256`. Read the diff: one addon changed.
-3. `node --test scripts/publish.test.mjs`, then commit (signed) and push to `main`.
+3. `npm test`, then commit (signed) and push to `main`.
 4. Tag the next version, signed and annotated, on that commit, and push the tag:
 
    ```bash
