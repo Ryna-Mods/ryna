@@ -91,7 +91,11 @@ function ready(dir, tag) {
   run(dir, "git", ["fetch", "--quiet", "--tags", "origin"], { quiet: true });
   const branch = run(dir, "git", ["rev-parse", "--abbrev-ref", "HEAD"], { quiet: true });
   if (branch !== "main") throw new Error(`${dir} is on ${branch}, not main`);
-  if (run(dir, "git", ["status", "--porcelain"], { quiet: true })) throw new Error(`${dir} has uncommitted changes`);
+  // Tracked files only: a release is built from what is committed, so a stray untracked file (a
+  // note someone hasn't committed yet) is named and left alone, never a reason to stop.
+  if (run(dir, "git", ["status", "--porcelain", "--untracked-files=no"], { quiet: true })) throw new Error(`${dir} has uncommitted changes`);
+  const stray = run(dir, "git", ["ls-files", "--others", "--exclude-standard"], { quiet: true });
+  if (stray) console.log(`  note: ${dir} has untracked files, left as they are: ${stray.split("\n").join(", ")}`);
   const head = run(dir, "git", ["rev-parse", "HEAD"], { quiet: true });
   if (head !== run(dir, "git", ["rev-parse", "origin/main"], { quiet: true })) {
     throw new Error(`${dir} isn't level with origin/main: pull or push first`);
