@@ -46,7 +46,12 @@
       "folder": "Ryna_Guild",
       "repo": "Ryna-Mods/guild",
       "tag": "v0.1.0",
-      "sha256": "3aad059b44afed36661c75065a0e6a285abce28b8225b1f5d834bf0bea284f73"
+      "sha256": "3aad059b44afed36661c75065a0e6a285abce28b8225b1f5d834bf0bea284f73",
+      "mod": {
+        "id": "guild",
+        "name": "Guild",
+        "summary": "A Guild section in Ryna's window: your guild's roster, what changed between readings (who joined, left, levelled, changed rank or note, or came back after two weeks away) and who has gone quiet for 14, 30, 60 or 90 days. It only shows what Chronicle has read of the roster, so it needs Chronicle on; nothing in it changes your guild. Nothing in chat."
+      }
     }
   ]
 }

@@ -65,6 +65,26 @@ export function versionOf(serial) {
   return `${Math.floor(serial / 1_000_000)}.${Math.floor(serial / 1_000) % 1_000}.${serial % 1_000}`;
 }
 
+/**
+ * What a mod is, for an app that doesn't carry it (ryna_agent docs 6.2, "A mod the app doesn't
+ * carry"): `{ id, name, summary, actsInGame? }`. It goes into the signed index as it is, and an app
+ * that has never heard of the folder lists the mod from it, off until the person turns it on. The
+ * app holds the same limits (its `addon_index.rs`); change both.
+ */
+export function readMod(m, fail) {
+  if (m === null || typeof m !== "object" || Array.isArray(m)) fail("its mod isn't an object");
+  for (const k of Object.keys(m)) {
+    if (!["id", "name", "summary", "actsInGame"].includes(k)) fail(`mod.${k} isn't a field`);
+  }
+  const plain = (s, max) =>
+    typeof s === "string" && s.trim() !== "" && [...s].length <= max && !/[\p{Cc}\p{Cf}]/u.test(s);
+  if (typeof m.id !== "string" || !/^[a-z][a-z0-9-]{0,31}$/.test(m.id)) fail("its mod's id isn't lowercase letters, digits and dashes");
+  if (!plain(m.name, 60)) fail("its mod's name isn't a plain name of 60 characters or fewer");
+  if (!plain(m.summary, 1000)) fail("its mod's summary isn't plain words, 1000 characters or fewer");
+  if (m.actsInGame !== undefined && typeof m.actsInGame !== "boolean") fail("its mod's actsInGame isn't true or false");
+  return { id: m.id, name: m.name, summary: m.summary, ...(m.actsInGame ? { actsInGame: true } : {}) };
+}
+
 /** Check bundle.json's shape and return its addons, each with `version`, `asset` and `url` worked out. */
 export function readBundle(json) {
   const addons = json?.addons;
@@ -76,7 +96,7 @@ export function readBundle(json) {
       throw new Error(`bundle.json, ${who}: ${why}`);
     };
     for (const k of Object.keys(a ?? {})) {
-      if (!["folder", "repo", "tag", "asset", "sha256", "minApp"].includes(k)) fail(`${k} isn't a field`);
+      if (!["folder", "repo", "tag", "asset", "sha256", "minApp", "mod"].includes(k)) fail(`${k} isn't a field`);
     }
     if (typeof a?.folder !== "string" || !FOLDER.test(a.folder)) fail("its folder isn't Ryna_<Name>");
     if (seen.has(a.folder)) fail("listed twice");
@@ -94,6 +114,8 @@ export function readBundle(json) {
     if (a.minApp !== undefined && (typeof a.minApp !== "string" || !VERSION.test(a.minApp))) {
       fail("its minApp isn't numbers and dots");
     }
+    if (a.mod !== undefined && a.folder === CORE) fail("the core isn't a mod");
+    const mod = a.mod === undefined ? undefined : readMod(a.mod, fail);
     return {
       folder: a.folder,
       repo: a.repo,
@@ -102,6 +124,7 @@ export function readBundle(json) {
       asset,
       sha256: a.sha256,
       minApp: a.minApp,
+      mod,
       own: a.repo.startsWith(OWN),
       url: `https://github.com/${a.repo}/releases/download/${a.tag}/${asset}`,
     };
@@ -219,6 +242,7 @@ export async function build({ bundle, version, fetch, generated, previous }) {
       url: t.url,
       sha256: t.sha256,
       size: t.size,
+      ...(t.mod ? { mod: t.mod } : {}),
     }));
 
   if (previous) {

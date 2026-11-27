@@ -127,6 +127,21 @@ test("bundle.json is refused for anything it shouldn't say", () => {
   refused({ sha256: "ABC" }, /sha256/);
   refused({ minApp: "new" }, /minApp/);
   refused({ url: "https://example.com/x.zip" }, /isn't a field/);
+  refused({ mod: { id: "core", name: "Core", summary: "x" } }, /core isn't a mod/);
+  const mod = { id: "guild", name: "Guild", summary: "Your guild's roster." };
+  const guild = (m) => ({ addons: [ok, { folder: "Ryna_Guild", repo: "Ryna-Mods/guild", tag: "v0.1.0", mod: m }] });
+  assert.deepEqual(readBundle(guild({ ...mod, actsInGame: false }))[1].mod, mod, "actsInGame is said only when true");
+  assert.deepEqual(readBundle(guild({ ...mod, actsInGame: true }))[1].mod, { ...mod, actsInGame: true });
+  for (const [bad, why] of [
+    [{ ...mod, id: "Guild" }, /id/],
+    [{ ...mod, name: "" }, /name/],
+    [{ ...mod, summary: "a\u202Eb" }, /summary/],
+    [{ ...mod, defaultOn: true }, /defaultOn isn't a field/],
+    [{ ...mod, actsInGame: "yes" }, /actsInGame/],
+    ["guild", /isn't an object/],
+  ]) {
+    assert.throws(() => readBundle(guild(bad)), why);
+  }
   refused({ folder: "Other" }, /folder/);
   assert.throws(() => readBundle({ addons: [ok, ok] }), /twice/);
   assert.throws(() => readBundle({ addons: [{ ...ok, folder: "Ryna_Meter" }] }), /no Ryna_Core/);
@@ -166,7 +181,8 @@ test("addons that still come from ryna_agent's zip fill the bundle and get no in
 test("an addon with a release of its own gets an entry that names that release's zip", async () => {
   const w = world();
   const [core, , prices] = combined(w);
-  const meter = { ...w.put("Ryna_Meter", "Ryna-Mods/meter", "v1.0.1", addon("Ryna_Meter", "1.0.1", 2)), minApp: "0.5.1" };
+  const mod = { id: "meter", name: "Meter", summary: "A damage meter." };
+  const meter = { ...w.put("Ryna_Meter", "Ryna-Mods/meter", "v1.0.1", addon("Ryna_Meter", "1.0.1", 2)), minApp: "0.5.1", mod };
   const built = await build({ bundle: { addons: [core, meter, prices] }, version: "0.5.1", fetch: w.fetch, generated });
   const zip = await w.fetch("https://github.com/Ryna-Mods/meter/releases/download/v1.0.1/Ryna_Meter-1.0.1.zip");
   assert.deepEqual(built.index.addons, [
@@ -178,6 +194,8 @@ test("an addon with a release of its own gets an entry that names that release's
       url: "https://github.com/Ryna-Mods/meter/releases/download/v1.0.1/Ryna_Meter-1.0.1.zip",
       sha256: sha256(zip),
       size: zip.length,
+      // What the mod is, so an app that doesn't carry it can offer it (off until turned on).
+      mod,
     },
   ]);
   const toc = readZip(built.files["Ryna-0.5.1-forever.zip"]).find((e) => e.name === "Ryna_Meter/Ryna_Meter.toc");

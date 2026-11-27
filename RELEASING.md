@@ -26,6 +26,13 @@ It says nothing about the versions of the addons inside, which each have their o
 - `sha256` pins that zip. The build stops if the file on GitHub is any other.
 - `minApp` (optional) is the oldest Ryna app that can read what this version writes; an older app
   keeps the copy it carries.
+- `mod` (optional, never on the core) says what the mod is: `{ "id", "name", "summary",
+  "actsInGame" }`. It goes into the signed index as written, and it is what lets **a new mod reach
+  people without a new Ryna app**: an app that has never heard of the folder lists the mod from these
+  words, marked New and off until the person turns it on, and fetches its zip by the pinned hash like
+  any update. Without `mod`, only an app built with that mod installs it. A new mod's entry should
+  have it from its first release. The words are shown to people as they are, so write them as a
+  mod's `mod.json` summary is written.
 - Every addon is in a repository of its own (`Ryna-Mods/…`) and gets an index entry, so the app can
   fetch it. (The build still takes an addon out of ryna_agent's combined zip, `MaddisonM79/ryna_agent`
   with `asset` `Ryna-<version>.zip`, and leaves it out of the index; none comes that way any more.)
