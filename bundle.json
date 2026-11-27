@@ -52,6 +52,17 @@
         "name": "Guild",
         "summary": "A Guild section in Ryna's window: your guild's roster, what changed between readings (who joined, left, levelled, changed rank or note, or came back after two weeks away) and who has gone quiet for 14, 30, 60 or 90 days. It only shows what Chronicle has read of the roster, so it needs Chronicle on; nothing in it changes your guild. Nothing in chat."
       }
+    },
+    {
+      "folder": "Ryna_Verity",
+      "repo": "Ryna-Mods/verity",
+      "tag": "v0.1.0",
+      "sha256": "80bee769081428efd9026a851d1cd7d1826e96eb15b7458385447b198eee758e",
+      "mod": {
+        "id": "verity",
+        "name": "Verity",
+        "summary": "Tag the people you ran a dungeon with, from a fixed list: five ways to commend, four to report, and no free text. A Verity section in Ryna's window lists the members of your runs of the last seven days with what was counted for them (Need rolls on gear their class can't equip, items passed on, bosses killed after they left); your own notes show on a player's tooltip and once in chat when they join your group. It needs Chronicle recording dungeon runs. This mod sends things: one short random code to the Ryna addons of the others in your group, and, five minutes after you tick a tag, that tag with the member's character name and the counts to Ryna's pool on ryna.io, where it can't be taken back and fades out over 90 days. Chat is never read."
+      }
     }
   ]
 }
