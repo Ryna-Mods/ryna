@@ -7,8 +7,8 @@ This repository publishes that download ([latest release](https://github.com/Ryn
 Each addon's source is in a repository of its own, beside this one:
 [core](https://github.com/Ryna-Mods/core), [meter](https://github.com/Ryna-Mods/meter),
 [automation](https://github.com/Ryna-Mods/automation), [prices](https://github.com/Ryna-Mods/prices),
-[chronicle](https://github.com/Ryna-Mods/chronicle), [fights](https://github.com/Ryna-Mods/fights) and
-[cleanse](https://github.com/Ryna-Mods/cleanse).
+[chronicle](https://github.com/Ryna-Mods/chronicle), [fights](https://github.com/Ryna-Mods/fights),
+[cleanse](https://github.com/Ryna-Mods/cleanse) and [guild](https://github.com/Ryna-Mods/guild).
 The desktop app and the issues are at [MaddisonM79/ryna_agent](https://github.com/MaddisonM79/ryna_agent).
 
 ## What's in it
@@ -22,6 +22,7 @@ The desktop app and the issues are at [MaddisonM79/ryna_agent](https://github.co
 | `Ryna_Chronicle` | Records your characters, bags, bank, quests, kills and loot, and shows your tallies on tooltips. | Records and shows in game |
 | `Ryna_Fights` | Your recent fights in Ryna's window: who struck first, who died when, damage over the fight. | Shows nothing |
 | `Ryna_Cleanse` | A row for each member of your group or raid that lights up when they have something you can cure; click it to cast the cure. | Works fully |
+| `Ryna_Guild` | A Guild section in Ryna's window: the roster, what changed between readings (who joined, left, levelled, changed rank) and who has gone quiet. It only shows; nothing in it changes your guild. Needs Chronicle. | Works fully |
 
 Every mod needs `Ryna_Core` (the folder was `Ryna` before 0.5.0). To leave a mod out, untick it in the game's AddOns list on the
 character select screen.

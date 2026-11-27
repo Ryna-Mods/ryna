@@ -41,6 +41,12 @@
       "repo": "Ryna-Mods/cleanse",
       "tag": "v0.1.0",
       "sha256": "71555a22f65b2c401845fbf476e16eb64c6b7ff34d9f99736801a2f8ae2c2749"
+    },
+    {
+      "folder": "Ryna_Guild",
+      "repo": "Ryna-Mods/guild",
+      "tag": "v0.1.0",
+      "sha256": "3aad059b44afed36661c75065a0e6a285abce28b8225b1f5d834bf0bea284f73"
     }
   ]
 }
